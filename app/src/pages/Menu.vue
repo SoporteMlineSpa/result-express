@@ -17,9 +17,9 @@
           :done="step > 1"
           >
 
-          <q-btn class="q-pa-sm q-ma-sm" color="secondary" label="Clasificados" icon="fas fa-project-diagram" stack  @click="dClasificados = true"/>
-            <q-btn class="q-pa-sm q-ma-sm" color="secondary" label="Unidad de Negocios" icon="fas fa-tags" stack @click="dUnidadNegocios = true"/>
-              <q-btn class="q-pa-sm q-ma-sm" color="secondary" label="Centro de Costos" icon="fas fa-building" stack @click="dCentroCostos = true"/>
+          <q-btn class="q-pa-sm q-ma-sm" color="primary" label="Clasificados" icon="fas fa-project-diagram" stack  @click="dClasificados = true"/>
+            <q-btn class="q-pa-sm q-ma-sm" color="primary" label="Unidad de Negocios" icon="fas fa-tags" stack @click="dUnidadNegocios = true"/>
+              <q-btn class="q-pa-sm q-ma-sm" color="primary" label="Centro de Costos" icon="fas fa-building" stack @click="dCentroCostos = true"/>
 
                 <q-dialog full-width v-model="dClasificados">
                   <q-card>
@@ -55,13 +55,13 @@
                           >
                           <q-input
                             filled
-                            v-model="idUnidadNegocio"
+                            v-model="unidadNegocio.id"
                             label="ID"
                             hint="Identificador Unico"
                             />
                             <q-input
                               filled
-                              v-model="nombreUnidadNegocio"
+                              v-model="unidadNegocio.nombre"
                               label="Nombre"
                               hint="Nombre de la unidad de negocio"
                               />
@@ -99,13 +99,13 @@
                           >
                           <q-input
                             filled
-                            v-model="idCentroCosto"
+                            v-model="centroCosto.id"
                             label="ID"
                             hint="Identificador Unico"
                             />
                             <q-input
                               filled
-                              v-model="nombreCentroCosto"
+                              v-model="centroCosto.nombre"
                               label="Nombre"
                               hint="Nombre del centro de costo"
                               />
@@ -228,41 +228,41 @@
                   class="q-gutter-md">
                     <q-input
                       filled
-                      v-model="nroBoleta"
+                      v-model="boleta.nro"
                       label="Numero"/>
                     <q-input filled v-model="fechaBoleta" type="date" />
                     <q-input
                       filled
-                      v-model="estadoBoleta"
+                      v-model="boleta.estado"
                       label="Estado"/>
                     <q-input
                       filled
-                      v-model="rutBoleta"
+                      v-model="boleta.rut"
                       label="RUT Emisor"/>
                     <q-input
                       filled
-                      v-model="nombreBoleta"
+                      v-model="boleta.nombre"
                       label="Nombre o Razon Social Emisor"/>
                     <q-input
                       filled
-                      v-model="socProfBoleta"
+                      v-model="boleta.socProf"
                       label="Soc Prof"/>
                     <q-input
                       filled
-                      v-model="brutoBoleta"
+                      v-model="boleta.bruto"
                       label="Honorario Bruto"/>
                     <q-input
                       filled
-                      v-model="retenidoBoleta"
+                      v-model="boleta.retenido"
                       label="Honorario Retenido"/>
                     <q-input
                       filled
-                      v-model="pagadoBoleta"
+                      v-model="boleta.pagado"
                       label="Honorario Pagado"/>
-      <div>
-        <q-btn label="Submit" type="submit" color="primary"/>
-        <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
-      </div>
+                  <div>
+                    <q-btn label="Submit" type="submit" color="primary"/>
+                    <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
+                  </div>
                 </q-form>
               </q-card-section>
               <q-card-section>
@@ -301,6 +301,82 @@
           :done="step > 3"
           active-color="deep-orange"
           >
+
+          <q-btn class="q-mx-xs" color="primary" label="Asignar Cuentas a Ventas" icon="fas fa-clipboard-list" stack @click="dAsignarVentas = true" />
+          <q-btn class="q-mx-xs" color="primary" label="Asignar Cuentas a Compras" icon="fas fa-clipboard-check" stack @click="dAsignarCompras = true" />
+
+          <q-dialog full-width v-model="dAsignarCompras">
+            <q-card>
+              <q-card-section>
+                <q-markup-table dense>
+                  <thead>
+                    <tr>
+                      <th scope="col">Fecha</th>
+                      <th scope="col">Folio</th>
+                      <th scope="col">Proveedor</th>
+                      <th scope="col">Monto</th>
+                      <th scope="col">Accion</th>
+                      <th scope="col">Activo</th>
+                      <th scope="col">Costo Directo</th>
+                      <th scope="col">GAV</th>
+                      <th scope="col">No Operacionales</th>
+                      <th scope="col">Unidad de Negocio</th>
+                      <th scope="col">Centro de Costo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="compra in compras" :key="compra.nro">
+                      <td>{{compra['Fecha Docto']}}</td>
+                      <td>{{compra['Folio']}}</td>
+                      <td>{{compra['Razon Social']}}</td>
+                      <td>{{compra['Monto Total']}}</td>
+                      <td><q-btn @click="$q.dialog({title:'Compra', message: JSON.stringify(compra)})" label="Ver Compra" color="primary" /></td>
+                      <td><q-select @change="asignacion(compra, selActivo)" v-model="selActivo" :options="activos" option-label="desc" option-key="cod" map-options /></td>
+                      <td><q-select @change="asignacion(compra, selCostoDirecto)" v-model="selCostoDirecto" :options="costoDirecto" option-label="desc" option-key="cod" map-options/></td>
+                      <td><q-select @change="asignacion(compra, selGastosAdmVenta)" v-model="selGastosAdmVenta" :options="gastosAdmVenta" option-label="desc" option-key="cod" map-options/></td>
+                      <td><q-select @change="asignacion(compra, selGastoNoOper)" v-model="selGastoNoOper" :options="gastosNoOper" option-label="desc" option-key="cod" map-options/></td>
+                      <td><q-select @change="asignacion(compra, selUnidadNegocios)" v-model="selUnidadNegocios" :options="unidadNegocios" option-label="nombre" option-value="id" map-options /></td>
+                      <td><q-select @change="asignacion(compra, selCentroCostos)" v-model="selCentroCostos" :options="centroCostos" option-label="nombre" option-value="id" map-options /></td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+
+          <q-dialog full-width v-model="dAsignarVentas">
+            <q-card>
+              <q-card-section>
+                <q-markup-table dense>
+                  <thead>
+                    <tr>
+                      <th scope="col">Fecha</th>
+                      <th scope="col">Folio</th>
+                      <th scope="col">Cliente</th>
+                      <th scope="col">Monto</th>
+                      <th scope="col">Accion</th>
+                      <th scope="col">Venta Directa</th>
+                      <th scope="col">No Operacional</th>
+                      <th scope="col">Unidad de Negocio</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="venta in ventas" :key="venta.Nro">
+                      <td>{{venta['Fecha Docto']}}</td>
+                      <td>{{venta['Folio']}}</td>
+                      <td>{{venta['Razon Social']}}</td>
+                      <td>{{venta['Monto total']}}</td>
+                      <td><q-btn @click="$q.dialog({title:'Venta', message: JSON.stringify(venta)})" label="Ver Venta" color="primary" /></td>
+                      <td><q-select v-model="selVentasDirectas" :options="ventasDirectas" option-label="desc" option-key="cod" map-options/></td>
+                      <td><q-select v-model="selVentasNoOper" :options="ventasNoOper" option-label="desc" option-key="cod" map-options/></td>
+                      <td><q-select v-model="selUnidadNegociosVenta" :options="unidadNegocios" option-label="nombre" option-value="id" map-options /></td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+
           <q-stepper-navigation>
             <q-btn @click="step = 4" color="primary" label="Continuar" />
               <q-btn flat @click="step = 2" color="primary" label="Regresar" class="q-ml-sm" />
@@ -315,6 +391,130 @@
           icon="add_comment"
           active-color="deep-orange"
           >
+
+          <q-btn @click="dResultadoExpress = true" class="q-pa-xs q-ma-sm" stack color="primary" label="Resultado Express" icon="fas fa-chart-line" />
+          <q-btn @click="dRentabilidadUnidad = true" class="q-pa-xs q-ma-sm" stack color="accent" label="Rentabilidad Unidades de Negocio" icon="fas fa-chart-bar"/>
+          <q-btn @click="dRentabilidadCentro = true" class="q-pa-xs q-ma-sm" stack color="info" label="Rentabilidad Centros de Costo" icon="fas fa-chart-area"/>
+
+          <q-dialog full-width v-model="dResultadoExpress">
+            <q-card>
+              <q-card-section>
+                <h5>Resultados Express</h5>
+                <q-markup-table dense>
+                  <thead>
+                    <tr>
+                      <th scope="col">Descripcion</th>
+                      <th scope="col">Enero</th>
+                      <th scope="col">Febrero</th>
+                      <th scope="col">Marzo</th>
+                      <th scope="col">Abril</th>
+                      <th scope="col">Mayo</th>
+                      <th scope="col">Junio</th>
+                      <th scope="col">Julio</th>
+                      <th scope="col">Agosto</th>
+                      <th scope="col">Septiembre</th>
+                      <th scope="col">Octubre</th>
+                      <th scope="col">Noviembre</th>
+                      <th scope="col">Diciembre</th>
+                      <th scope="col">Acumulado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr></tr>
+                  </tbody>
+                </q-markup-table>
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+
+          <q-dialog full-width v-model="dRentabilidadUnidad">
+            <q-card>
+              <q-card-section>
+                <h5>Rentabilidad Unidades de Negocios</h5>
+                <q-markup-table dense>
+                  <thead>
+                    <tr>
+                      <th scope="col">Unidad de Negocio</th>
+                      <th scope="col">Enero</th>
+                      <th scope="col">Febrero</th>
+                      <th scope="col">Marzo</th>
+                      <th scope="col">Abril</th>
+                      <th scope="col">Mayo</th>
+                      <th scope="col">Junio</th>
+                      <th scope="col">Julio</th>
+                      <th scope="col">Agosto</th>
+                      <th scope="col">Septiembre</th>
+                      <th scope="col">Octubre</th>
+                      <th scope="col">Noviembre</th>
+                      <th scope="col">Diciembre</th>
+                      <th scope="col">Acumulado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr></tr>
+                  </tbody>
+                </q-markup-table>
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+
+          <q-dialog full-width v-model="dRentabilidadCentro">
+            <q-card>
+              <q-card-section>
+                <h5>Rentabilidad Centros de Costos</h5>
+                <q-markup-table dense>
+                  <thead>
+                    <tr>
+                      <th scope="col">Centro de Costos</th>
+                      <th scope="col">Enero</th>
+                      <th scope="col">Febrero</th>
+                      <th scope="col">Marzo</th>
+                      <th scope="col">Abril</th>
+                      <th scope="col">Mayo</th>
+                      <th scope="col">Junio</th>
+                      <th scope="col">Julio</th>
+                      <th scope="col">Agosto</th>
+                      <th scope="col">Septiembre</th>
+                      <th scope="col">Octubre</th>
+                      <th scope="col">Noviembre</th>
+                      <th scope="col">Diciembre</th>
+                      <th scope="col">Acumulado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr></tr>
+                  </tbody>
+                </q-markup-table>
+
+                <h5>Asignacion Porcentual de Ventas a Centro de Costos</h5>
+                <q-markup-table dense>
+                  <thead>
+                    <tr>
+                      <th scope="col">Centro de Costos</th>
+                      <th scope="col">Enero</th>
+                      <th scope="col">Febrero</th>
+                      <th scope="col">Marzo</th>
+                      <th scope="col">Abril</th>
+                      <th scope="col">Mayo</th>
+                      <th scope="col">Junio</th>
+                      <th scope="col">Julio</th>
+                      <th scope="col">Agosto</th>
+                      <th scope="col">Septiembre</th>
+                      <th scope="col">Octubre</th>
+                      <th scope="col">Noviembre</th>
+                      <th scope="col">Diciembre</th>
+                      <th scope="col">Acumulado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr></tr>
+                  </tbody>
+                </q-markup-table>
+
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+
           <q-stepper-navigation>
             <q-btn color="primary" label="Finalizar" />
               <q-btn flat @click="step = 3" color="primary" label="Regresar" class="q-ml-sm" />
@@ -344,49 +544,90 @@ export default {
       dCompras: false,
       dVentas: false,
       dBoletas: false,
+      dAsignarCentros: false,
+      dAsignarUnidades: false,
+      dAsignarCompras: false,
+      dAsignarVentas: false,
+      dResultadoExpress: false,
+      dRentabilidadUnidad: false,
+      dRentabilidadCentro: false,
 
       // Variables
-      idCentroCosto: null,
-      nombreCentroCosto: null,
-      idUnidadNegocio: null,
-      nombreUnidadNegocio: null,
+      centroCosto: {
+        id: null,
+        nombre: null
+      },
+      unidadNegocio: {
+        id: null,
+        nombre: null
+      },
+      boleta: {
+        nro: null,
+        fecha: null,
+        estado: null,
+        rut: null,
+        nombre: null,
+        socProf: null,
+        bruto: null,
+        retenido: null,
+        pagado: null
+      },
       centroCostos: [],
       unidadNegocios: [],
+      boletasHonorarios: [],
       ventas: [],
       compras: [],
-      boletasHonorarios: [],
-      nroBoleta: null,
-      fechaBoleta: null,
-      estadoBoleta: null,
-      rutBoleta: null,
-      nombreBoleta: null,
-      socProfBoleta: null,
-      brutoBoleta: null,
-      retenidoBoleta: null,
-      pagadoBoleta: null
+      selActivo: null,
+      selCentroCostos: null,
+      selCostoDirecto: null,
+      selGastosAdmVenta: null,
+      selGastoNoOper: null,
+      selUnidadNegocios: null,
+      selUnidadNegociosVenta: null,
+      selVentasDirectas: null,
+      selVentasNoOper: null,
+      asignacionCompra: []
     }
   },
   computed: {
     data: function () {
       return json
+    },
+    activos: function () {
+      return this.data.filter(data => (parseInt(data.cod) > 11201001 && parseInt(data.cod) < 11201015))
+    },
+    costoDirecto: function () {
+      return this.data.filter(data => (parseInt(data.cod) > 55001000 && parseInt(data.cod) < 55001019))
+    },
+    gastosAdmVenta: function () {
+      return this.data.filter(data => (parseInt(data.cod) > 55001000 && parseInt(data.cod) < 55002041))
+    },
+    gastosNoOper: function () {
+      return this.data.filter(data => (parseInt(data.cod) > 55003000 && parseInt(data.cod) < 55003010))
+    },
+    ventasDirectas: function () {
+      return this.data.filter(data => (parseInt(data.cod) > 33001000 && parseInt(data.cod) < 33001024))
+    },
+    ventasNoOper: function () {
+      return this.data.filter(data => (parseInt(data.cod) > 33002000 && parseInt(data.cod) < 33002009))
     }
   },
   methods: {
     onSubmit: function (evt) {
-      if (this.idCentroCosto === null) {
+      if (this.centroCosto.id === null) {
         this.unidadNegocios.push(
           {
-            'id': this.idUnidadNegocio,
-            'nombre': this.nombreUnidadNegocio
+            'id': this.unidadNegocio.id,
+            'nombre': this.unidadNegocio.nombre
           }
         )
       }
 
-      if (this.idUnidadNegocio === null) {
+      if (this.unidadNegocio.id === null) {
         this.centroCostos.push(
           {
-            'id': this.idCentroCosto,
-            'nombre': this.nombreCentroCosto
+            'id': this.centroCosto.id,
+            'nombre': this.centroCosto.nombre
           }
         )
       }
@@ -394,34 +635,40 @@ export default {
       if (this.idUnidadNegocio === null && this.idCentroCosto === null) {
         this.boletasHonorarios.push(
           {
-            'nro': this.nroBoleta,
-            'fecha': this.fechaBoleta,
-            'estado': this.estadoBoleta,
-            'rut': this.rutBoleta,
-            'nombre': this.nombreBoleta,
-            'socProf': this.socProfBoleta,
-            'bruto': this.brutoBoleta,
-            'retenido': this.retenidoBoleta,
-            'pagado': this.pagadoBoleta
+            'nro': this.boleta.nro,
+            'fecha': this.boleta.fecha,
+            'estado': this.boleta.estado,
+            'rut': this.boleta.rut,
+            'nombre': this.boleta.nombre,
+            'socProf': this.boleta.socProf,
+            'bruto': this.boleta.bruto,
+            'retenido': this.boleta.retenido,
+            'pagado': this.boleta.pagado
           }
         )
       }
       this.onReset()
     },
     onReset: function () {
-      this.idCentroCosto = null
-      this.nombreCentroCosto = null
-      this.idUnidadNegocio = null
-      this.nombreUnidadNegocio = null
-      this.nroBoleta = null
-      this.fechaBoleta = null
-      this.estadoBoleta = null
-      this.rutBoleta = null
-      this.nombreBoleta = null
-      this.socProfBoleta = null
-      this.brutoBoleta = null
-      this.retenidoBoleta = null
-      this.pagadoBoleta = null
+      this.unidadNegocio = {
+        id: null,
+        nombre: null
+      }
+      this.centroCosto = {
+        id: null,
+        nombre: null
+      }
+      this.boleta = {
+        nro: null,
+        fecha: null,
+        estado: null,
+        rut: null,
+        nombre: null,
+        socProf: null,
+        bruto: null,
+        retenido: null,
+        pagado: null
+      }
     },
     reader: function (evt, id) {
       var reader = new FileReader()
@@ -438,6 +685,12 @@ export default {
         }
       }
       reader.readAsArrayBuffer(evt.target.files[0])
+    },
+    asignacion: function (compra, value) {
+      this.asignacionCompra.push({
+        cod: compra.cod,
+        asignacion: value
+      })
     }
   }
 }
